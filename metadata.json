@@ -1,0 +1,6 @@
+{
+  "name": "MuniBond India",
+  "description": "Municipal Corporation of India Bond Price Intelligence & Finance Platform. Real-time municipal yield tracking, revenue analytics, risk assessment, and state choropleths.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
