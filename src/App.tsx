@@ -44,6 +44,42 @@ export default function App() {
   const [auditLogs, setAuditLogs] = useState<AuditLogEntry[]>([]);
   const [connectionStatus, setConnectionStatus] = useState<'connected' | 'connecting' | 'disconnected'>('disconnected');
 
+  // Localization and UX states
+  const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem('mb_theme') === 'dark');
+  const [language, setLanguage] = useState<'en' | 'hi' | 'mr' | 'kn'>(() => (localStorage.getItem('mb_lang') as any) || 'en');
+  const [timeZone, setTimeZone] = useState(() => localStorage.getItem('mb_timezone') || 'IST');
+  const [accentTheme, setAccentTheme] = useState<'orange' | 'blue' | 'classic'>(() => (localStorage.getItem('mb_accent') as any) || 'orange');
+  const [densityMode, setDensityMode] = useState<'compact' | 'comfortable'>(() => (localStorage.getItem('mb_density') as any) || 'comfortable');
+
+  // Effect to apply theme and persist settings
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('mb_theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('mb_theme', 'light');
+    }
+  }, [isDarkMode]);
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-accent', accentTheme);
+    localStorage.setItem('mb_accent', accentTheme);
+  }, [accentTheme]);
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-density', densityMode);
+    localStorage.setItem('mb_density', densityMode);
+  }, [densityMode]);
+
+  useEffect(() => {
+    localStorage.setItem('mb_lang', language);
+  }, [language]);
+
+  useEffect(() => {
+    localStorage.setItem('mb_timezone', timeZone);
+  }, [timeZone]);
+
   // Trigger load of all initial lists from backend APIs
   const fetchAllInitialData = async () => {
     try {
@@ -251,6 +287,7 @@ export default function App() {
           setCollapsed={setSidebarCollapsed}
           user={user}
           onOpenAuth={() => setActiveTab('auth')}
+          language={language}
         />
 
         {/* Master Workspace Panel */}
@@ -264,6 +301,7 @@ export default function App() {
             onOpenAuth={() => setActiveTab('auth')}
             bonds={bonds}
             onSelectBond={setSelectedBond}
+            language={language}
           />
 
           {/* Module Panel Render Router */}
@@ -302,11 +340,23 @@ export default function App() {
                 {activeTab === 'settings' && (
                   <SettingsPanel
                     user={user}
-                    onUpdateProfile={(name, email) => {
+                    onUpdateProfile={(name, email, avatarUrl, role) => {
                       const updated = { ...user, name, email };
+                      if (avatarUrl) updated.avatarUrl = avatarUrl;
+                      if (role) updated.role = role;
                       setUser(updated);
                       localStorage.setItem('mb_user', JSON.stringify(updated));
                     }}
+                    isDarkMode={isDarkMode}
+                    setIsDarkMode={setIsDarkMode}
+                    language={language}
+                    setLanguage={setLanguage}
+                    timeZone={timeZone}
+                    setTimeZone={setTimeZone}
+                    accentTheme={accentTheme}
+                    setAccentTheme={setAccentTheme}
+                    densityMode={densityMode}
+                    setDensityMode={setDensityMode}
                   />
                 )}
 
@@ -328,6 +378,10 @@ export default function App() {
                       onLogout={handleUserLogout}
                       currentSessionId="SES-001"
                       onClose={() => setActiveTab('tracker')}
+                      onUpdateUser={(updated) => {
+                        setUser(updated);
+                        localStorage.setItem('mb_user', JSON.stringify(updated));
+                      }}
                     />
                   </div>
                 )}

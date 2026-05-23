@@ -11,7 +11,7 @@ import { INITIAL_BONDS, STATE_METRICS, CORPORATIONS_CATALOG, MOCK_RATING_HISTORY
 import { UserProfile, UserSession, AuditLogEntry, ApiKey, Bond, LiveTransaction, CreditRating } from './src/types';
 
 const app = express();
-const PORT = 3001;
+const PORT = 3007;
 
 app.use(express.json());
 
@@ -191,14 +191,6 @@ app.post('/api/auth/login', (req: Request, res: Response) => {
   }
 
   const normalizedEmail = email.trim().toLowerCase();
-  
-  // Define authorized email whitelist
-  const authorizedEmails = ['rishikeshbrijjbhushanmishra@gmail.com'];
-  
-  if (!authorizedEmails.includes(normalizedEmail)) {
-    return res.status(403).json({ error: 'Access denied. Your email is not authorized to access this terminal.' });
-  }
-
   let user = users.find(u => u.email.toLowerCase() === normalizedEmail);
 
   // If Google Auth and user doesn't exist, create a new viewer account
@@ -325,6 +317,24 @@ app.post('/api/auth/sessions/revoke', (req: Request, res: Response) => {
 
 app.get('/api/auth/audit-logs', (req: Request, res: Response) => {
   res.json(auditLogs);
+});
+
+app.post('/api/auth/security/2fa', (req: Request, res: Response) => {
+  const { enabled } = req.body;
+  console.log(`Security Update Request: 2FA ${enabled ? 'Enable' : 'Disable'}`);
+  
+  // Try to find user from session or just use the admin for this demo
+  const user = users.find(u => u.id === 'USR-ADMIN-001') || users[0];
+  
+  if (user) {
+    user.isTwoFactorEnabled = enabled;
+    logAction(user.id, 'SECURITY_UPDATE', 'auth', 'success', `${enabled ? 'Enabled' : 'Disabled'} Two-Factor Authentication policy.`);
+    console.log(`Security Update Success: User ${user.email}`);
+    return res.json({ success: true, user });
+  }
+  
+  console.error('Security Update Error: User context not found');
+  res.status(404).json({ error: 'User context not found' });
 });
 
 // Bonds and State Locator APIs
@@ -593,7 +603,7 @@ async function startServer() {
       server: { 
         middlewareMode: true,
         hmr: {
-          port: 3002
+          port: 3008
         }
       },
       appType: 'spa',

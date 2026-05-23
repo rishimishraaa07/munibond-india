@@ -18,20 +18,48 @@ import {
   Copy,
   AlertCircle,
   Clock,
-  RefreshCw
+  RefreshCw,
+  Languages,
+  Moon,
+  Sun
 } from 'lucide-react';
 
 interface SettingsPanelProps {
   user: any;
-  onUpdateProfile: (name: string, email: string) => void;
+  onUpdateProfile: (name: string, email: string, avatarUrl?: string, role?: string) => void;
+  isDarkMode: boolean;
+  setIsDarkMode: (val: boolean) => void;
+  language: 'en' | 'hi' | 'mr' | 'kn';
+  setLanguage: (val: 'en' | 'hi' | 'mr' | 'kn') => void;
+  timeZone: string;
+  setTimeZone: (val: string) => void;
+  accentTheme: 'orange' | 'blue' | 'classic';
+  setAccentTheme: (val: 'orange' | 'blue' | 'classic') => void;
+  densityMode: 'compact' | 'comfortable';
+  setDensityMode: (val: 'compact' | 'comfortable') => void;
 }
 
-export default function SettingsPanel({ user, onUpdateProfile }: SettingsPanelProps) {
-  const [activeSubTab, setActiveSubTab] = useState<'profile' | 'alerts' | 'keys' | 'users' | 'feeds' | 'theme'>('profile');
+export default function SettingsPanel({ 
+  user, 
+  onUpdateProfile,
+  isDarkMode,
+  setIsDarkMode,
+  language,
+  setLanguage,
+  timeZone,
+  setTimeZone,
+  accentTheme,
+  setAccentTheme,
+  densityMode,
+  setDensityMode
+}: SettingsPanelProps) {
+  const [activeSubTab, setActiveSubTab] = useState<'profile' | 'alerts' | 'keys' | 'theme' | 'localization'>('profile');
 
   // Subsection 1: Profile states
   const [profileName, setProfileName] = useState(user?.name || '');
   const [profileEmail, setProfileEmail] = useState(user?.email || '');
+  const [profileAvatar, setProfileAvatar] = useState(user?.avatarUrl || '');
+  const [profileRole, setProfileRole] = useState(user?.role || 'viewer');
   const [profilePassword, setProfilePassword] = useState('password');
   const [successMsg, setSuccessMsg] = useState('');
 
@@ -48,24 +76,8 @@ export default function SettingsPanel({ user, onUpdateProfile }: SettingsPanelPr
   const [newKeyFriendlyName, setNewKeyFriendlyName] = useState('');
   const [copiedKeyText, setCopiedKeyText] = useState('');
 
-  // Subsection 4: Team members list (Admin only)
-  const [teamMembers, setTeamMembers] = useState([
-    { name: 'Rishikesh Brijbhushan Mishra', email: 'rishikeshbrijjbhushanmishra@gmail.com', role: 'admin', status: 'Active' }
-  ]);
-  const [inviteName, setInviteName] = useState('');
-  const [inviteEmail, setInviteEmail] = useState('');
-  const [inviteRole, setInviteRole] = useState('viewer');
-
-  // Subsection 5: Core Data feeds sources config
-  const [dataFeeds, setDataFeeds] = useState<DataSource[]>([
-    { id: '1', providerName: 'SEBI Corporate Bond Registry Services', endpointUrl: 'https://api.sebi.gov.in/v2/municipal-bonds', status: 'Connected', refreshIntervalSeconds: 300, lastSyncTime: '2m ago' },
-    { id: '2', providerName: 'NSE India Debt Market Feed Node', endpointUrl: 'https://feed.nseindia.com/marketdata/debt-instruments', status: 'Connected', refreshIntervalSeconds: 60, lastSyncTime: '3s ago' },
-    { id: '3', providerName: 'BSE India Municipal Ledger Platform', endpointUrl: 'https://bseindia.com/muni-feed/v1', status: 'Degraded', refreshIntervalSeconds: 120, lastSyncTime: '5m ago' }
-  ]);
-
   // Subsection 6: Layout density and cosmetic picker
-  const [densityMode, setDensityMode] = useState<'compact' | 'comfortable'>('comfortable');
-  const [accentTheme, setAccentTheme] = useState<'orange' | 'blue' | 'classic'>('orange');
+  // (State moved to App.tsx for global application)
 
   // Query API keys from backend
   const fetchApiKeys = async () => {
@@ -86,7 +98,7 @@ export default function SettingsPanel({ user, onUpdateProfile }: SettingsPanelPr
 
   const handleUpdateProfile = (e: React.FormEvent) => {
     e.preventDefault();
-    onUpdateProfile(profileName, profileEmail);
+    onUpdateProfile(profileName, profileEmail, profileAvatar, profileRole);
     setSuccessMsg('Member profile credentials compiled and loaded.');
     setTimeout(() => setSuccessMsg(''), 2000);
   };
@@ -125,31 +137,15 @@ export default function SettingsPanel({ user, onUpdateProfile }: SettingsPanelPr
     }
   };
 
-  const handleInviteUser = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!inviteName.trim() || !inviteEmail.trim()) return;
-
-    const newMbr = {
-      name: inviteName,
-      email: inviteEmail,
-      role: inviteRole,
-      status: 'Active'
-    };
-
-    setTeamMembers(prev => [...prev, newMbr]);
-    setInviteName('');
-    setInviteEmail('');
-    setSuccessMsg(`Invitation dispatched to ${inviteEmail}.`);
-    setTimeout(() => setSuccessMsg(''), 2000);
-  };
-
-  const toggleTeammemberState = (emailStr: string) => {
-    setTeamMembers(prev => prev.map(m => {
-      if (m.email === emailStr) {
-        return { ...m, status: m.status === 'Active' ? 'Deactivated' : 'Active' };
-      }
-      return m;
-    }));
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setProfileAvatar(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   return (
@@ -179,27 +175,6 @@ export default function SettingsPanel({ user, onUpdateProfile }: SettingsPanelPr
           System Notifications
         </button>
 
-
-        <button
-          onClick={() => setActiveSubTab('users')}
-          className={`w-full text-left text-xs px-2.5 py-2 rounded flex items-center gap-2 font-semibold transition-all cursor-pointer ${
-            activeSubTab === 'users' ? 'bg-slate-900 text-orange-500' : 'text-slate-600 hover:bg-slate-200/50'
-          }`}
-        >
-          <Users2 size={14} className="shrink-0" />
-          Users & Access roles
-        </button>
-
-        <button
-          onClick={() => setActiveSubTab('feeds')}
-          className={`w-full text-left text-xs px-2.5 py-2 rounded flex items-center gap-2 font-semibold transition-all cursor-pointer ${
-            activeSubTab === 'feeds' ? 'bg-slate-900 text-orange-500' : 'text-slate-600 hover:bg-slate-200/50'
-          }`}
-        >
-          <Database size={14} className="shrink-0" />
-          Data feed sources
-        </button>
-
         <button
           onClick={() => setActiveSubTab('theme')}
           className={`w-full text-left text-xs px-2.5 py-2 rounded flex items-center gap-2 font-semibold transition-all cursor-pointer ${
@@ -208,6 +183,16 @@ export default function SettingsPanel({ user, onUpdateProfile }: SettingsPanelPr
         >
           <Palette size={14} className="shrink-0" />
           Accent Appearance
+        </button>
+
+        <button
+          onClick={() => setActiveSubTab('localization')}
+          className={`w-full text-left text-xs px-2.5 py-2 rounded flex items-center gap-2 font-semibold transition-all cursor-pointer ${
+            activeSubTab === 'localization' ? 'bg-slate-900 text-orange-500' : 'text-slate-600 hover:bg-slate-200/50'
+          }`}
+        >
+          <Languages size={14} className="shrink-0" />
+          Localization & UX
         </button>
       </div>
 
@@ -226,6 +211,47 @@ export default function SettingsPanel({ user, onUpdateProfile }: SettingsPanelPr
             <div>
               <h4 className="text-sm font-bold text-slate-800">Member Account Settings</h4>
               <p className="text-xs text-slate-400 mt-0.5">Customize your verified account information and signatures.</p>
+            </div>
+
+            {/* Avatar Selection */}
+            <div className="flex items-center gap-4 py-4 border-b border-slate-100 mb-2">
+              <div className="relative group">
+                {profileAvatar ? (
+                  <img src={profileAvatar} className="h-20 w-20 rounded-full object-cover border-2 border-orange-500 shadow-lg transition-transform group-hover:scale-105" alt="Preview" />
+                ) : (
+                  <div className="h-20 w-20 rounded-full bg-slate-100 flex items-center justify-center border-2 border-dashed border-slate-300">
+                    <User size={32} className="text-slate-300" />
+                  </div>
+                )}
+              </div>
+              
+              <div className="flex flex-col gap-2">
+                <label className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider">Profile Authentication Image</label>
+                <div className="flex items-center gap-2">
+                  <label className="cursor-pointer px-3 py-1.5 bg-slate-900 text-white text-[11px] font-bold rounded hover:bg-slate-800 transition-colors flex items-center gap-1.5">
+                    <Plus size={14} className="text-orange-500" />
+                    Change Photo
+                    <input 
+                      type="file" 
+                      className="hidden" 
+                      accept="image/*" 
+                      onChange={handleImageChange} 
+                    />
+                  </label>
+                  
+                  {profileAvatar && (
+                    <button
+                      type="button"
+                      onClick={() => setProfileAvatar('')}
+                      className="px-3 py-1.5 bg-white border border-slate-200 text-slate-500 text-[11px] font-bold rounded hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 transition-all flex items-center gap-1.5"
+                    >
+                      <Trash2 size={14} />
+                      Remove
+                    </button>
+                  )}
+                </div>
+                <p className="text-[9px] text-slate-400 font-medium italic">Supports JPG, PNG or WEBP. Max size 2MB.</p>
+              </div>
             </div>
 
             <div className="space-y-1">
@@ -247,6 +273,20 @@ export default function SettingsPanel({ user, onUpdateProfile }: SettingsPanelPr
                 onChange={(e) => setProfileName(e.target.value)}
                 className="w-full text-xs font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded p-2.5 focus:border-orange-500 focus:outline-none"
               />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-[10px] font-mono font-bold text-slate-450 uppercase block">Assigned Role</label>
+              <select
+                value={profileRole}
+                onChange={(e) => setProfileRole(e.target.value)}
+                className="w-full text-xs font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded p-2.5 focus:border-orange-500 focus:outline-none cursor-pointer"
+              >
+                <option value="admin">Administrator</option>
+                <option value="officer">Municipal Officer</option>
+                <option value="analyst">Financial Analyst</option>
+                <option value="viewer">Market Viewer</option>
+              </select>
             </div>
 
             <div className="space-y-1">
@@ -344,156 +384,6 @@ export default function SettingsPanel({ user, onUpdateProfile }: SettingsPanelPr
         )}
 
 
-        {/* USERS & ACCESS RULES */}
-        {activeSubTab === 'users' && (
-          <div className="space-y-6">
-            <div>
-              <h4 className="text-sm font-bold text-slate-800">Team Access Control & Authorization</h4>
-              <p className="text-xs text-slate-400 mt-0.5">Invite new municipal officers and delegate Roles metrics views permissions.</p>
-            </div>
-
-            {/* Invite form */}
-            {user?.role === 'admin' ? (
-              <form onSubmit={handleInviteUser} className="bg-slate-50 border border-slate-100 rounded-md p-4 flex flex-wrap gap-3 items-end max-w-2xl">
-                <div className="flex-1 min-w-[150px] space-y-1">
-                  <label className="text-[10px] font-mono font-bold text-slate-400 uppercase block">Colleague Name</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="Sanjay Kumar"
-                    value={inviteName}
-                    onChange={(e) => setInviteName(e.target.value)}
-                    className="w-full text-xs font-semibold text-slate-750 bg-white border border-slate-250 rounded p-1.5 focus:outline-none"
-                  />
-                </div>
-
-                <div className="flex-1 min-w-[150px] space-y-1 font-sans">
-                  <label className="text-[10px] font-mono font-bold text-slate-400 uppercase block">E-Mail Address</label>
-                  <input
-                    type="email"
-                    required
-                    placeholder="officer@bbmp.gov.in"
-                    value={inviteEmail}
-                    onChange={(e) => setInviteEmail(e.target.value)}
-                    className="w-full text-xs font-semibold text-slate-755 bg-white border border-slate-250 rounded p-1.5 focus:outline-none"
-                  />
-                </div>
-
-                <div className="space-y-1 min-w-[120px]">
-                  <label className="text-[10px] font-mono font-bold text-slate-400 uppercase block">Assigned Role</label>
-                  <select
-                    value={inviteRole}
-                    onChange={(e) => setInviteRole(e.target.value)}
-                    className="w-full text-xs border border-slate-250 rounded p-1.5 bg-white text-slate-700 outline-none cursor-pointer font-sans"
-                  >
-                    <option value="viewer">Viewer</option>
-                    <option value="analyst">Analyst</option>
-                    <option value="officer">Corp Officer</option>
-                    <option value="admin">Admin</option>
-                  </select>
-                </div>
-
-                <button
-                  type="submit"
-                  className="py-2 px-4 bg-slate-900 border border-slate-950 hover:bg-slate-800 text-white text-xs font-bold rounded flex items-center gap-1 cursor-pointer uppercase font-sans"
-                >
-                  <Plus size={14} className="text-orange-500" />
-                  Invite Colleague
-                </button>
-              </form>
-            ) : (
-              <div className="bg-amber-50/50 border border-amber-100 p-3.5 rounded text-amber-800 text-xs flex items-start gap-2 max-w-lg">
-                <AlertCircle size={15} className="text-amber-500 mt-0.5 shrink-0" />
-                <p className="leading-normal font-medium">Invitation controls restricted. Only users carrying authorized <span className="font-bold">admin</span> level roles can invite registry operators.</p>
-              </div>
-            )}
-
-            {/* Users list Table */}
-            <div className="border border-slate-100 rounded overflow-hidden max-w-3xl">
-              <table className="w-full text-left text-xs text-slate-700">
-                <thead className="bg-slate-50 font-mono font-semibold uppercase text-slate-500 text-[10px]">
-                  <tr>
-                    <th className="p-3">Verified Operator</th>
-                    <th className="p-3">Email Desk</th>
-                    <th className="p-3">Permissions Scope</th>
-                    <th className="p-3 text-center">Desk Lock</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {teamMembers.map(mbr => (
-                    <tr key={mbr.email} className="hover:bg-slate-50">
-                      <td className="p-3 font-semibold text-slate-800">{mbr.name}</td>
-                      <td className="p-3 font-mono font-bold text-slate-500">{mbr.email}</td>
-                      <td className="p-3">
-                        <span className="bg-slate-100 px-1.5 py-0.2 rounded text-[10px] font-mono font-bold text-slate-500 uppercase">
-                          {mbr.role}
-                        </span>
-                      </td>
-                      <td className="p-3 text-center select-none">
-                        <button
-                          onClick={() => toggleTeammemberState(mbr.email)}
-                          disabled={user?.role !== 'admin' || mbr.email === user?.email}
-                          className={`text-[10px] font-bold px-3 py-1 rounded border transition-colors ${
-                            user?.role !== 'admin' ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'
-                          } ${
-                            mbr.status === 'Active'
-                              ? 'bg-emerald-50 text-emerald-600 border-emerald-100/50 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-100'
-                              : 'bg-rose-50 text-rose-600 border-rose-100 hover:bg-emerald-50 hover:text-emerald-600 hover:border-emerald-100/50'
-                          }`}
-                        >
-                          {mbr.status === 'Active' ? 'AUTHORIZED' : 'LOCKED BLOCK'}
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-
-        {/* FEED SOURCES */}
-        {activeSubTab === 'feeds' && (
-          <div className="space-y-6">
-            <div>
-              <h4 className="text-sm font-bold text-slate-800">Dynamic Data Provider integrations</h4>
-              <p className="text-xs text-slate-400 mt-0.5">Control live data API feeds. View synchronized interval rates and web socket endpoints configurations.</p>
-            </div>
-
-            <div className="space-y-3 max-w-4xl">
-              {dataFeeds.map(feed => (
-                <div key={feed.id} className="border border-slate-150 rounded-lg p-4 flex items-center justify-between bg-slate-50/20">
-                  <div className="space-y-1 text-left min-w-0 pr-4">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <p className="text-xs font-bold text-slate-800">{feed.providerName}</p>
-                      <span className={`inline-block font-mono font-bold text-[9px] px-1.5 rounded uppercase ${
-                        feed.status === 'Connected' ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'
-                      }`}>
-                        {feed.status}
-                      </span>
-                    </div>
-                    <p className="text-[10px] font-mono font-bold text-slate-400 truncate">{feed.endpointUrl}</p>
-                  </div>
-
-                  <div className="flex items-center gap-4 shrink-0">
-                    <div className="text-right text-[10px] text-slate-500 font-mono font-semibold">
-                      <p className="flex items-center gap-1 justify-end">
-                        <Clock size={11} />
-                        Sync Rate: {feed.refreshIntervalSeconds}s
-                      </p>
-                      <p className="text-[9px] text-slate-400 mt-0.5">Synced: {feed.lastSyncTime}</p>
-                    </div>
-
-                    <button className="text-slate-400 hover:text-slate-700 bg-white border border-slate-200 p-1.5 rounded shadow-sm hover:scale-103 cursor-pointer">
-                      <RefreshCw size={12} />
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
         {/* APPEARANCE */}
         {activeSubTab === 'theme' && (
           <div className="space-y-5">
@@ -547,6 +437,79 @@ export default function SettingsPanel({ user, onUpdateProfile }: SettingsPanelPr
                 >
                   <span className="w-2.5 h-2.5 rounded-full bg-blue-600 block"></span>
                   Bloomberg Slate Royal
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* LOCALIZATION & UX */}
+        {activeSubTab === 'localization' && (
+          <div className="space-y-6">
+            <div>
+              <h4 className="text-sm font-bold text-slate-800">Regional & Personalization Settings</h4>
+              <p className="text-xs text-slate-400 mt-0.5">Adjust terminal language, time-zone, and visual comfort modes.</p>
+            </div>
+
+            <div className="space-y-4 max-w-lg">
+              {/* Language Selection */}
+              <div className="space-y-2">
+                <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider block">Terminal Interface Language</span>
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { id: 'en', label: 'English (Global)' },
+                    { id: 'hi', label: 'Hindi (हिंदी)' },
+                    { id: 'mr', label: 'Marathi (मराठी)' },
+                    { id: 'kn', label: 'Kannada (ಕನ್ನಡ)' }
+                  ].map((lang) => (
+                    <button
+                      key={lang.id}
+                      onClick={() => setLanguage(lang.id as any)}
+                      className={`px-3 py-2 text-xs font-semibold rounded border text-left flex items-center justify-between ${
+                        language === lang.id ? 'bg-slate-900 border-slate-950 text-white' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                      }`}
+                    >
+                      {lang.label}
+                      {language === lang.id && <CheckCircle size={12} className="text-orange-500" />}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Timezone */}
+              <div className="space-y-2 pt-2">
+                <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider block">Data Synchronization Timezone</span>
+                <select
+                  value={timeZone}
+                  onChange={(e) => setTimeZone(e.target.value)}
+                  className="w-full text-xs font-semibold border border-slate-200 rounded p-2.5 bg-white text-slate-700 outline-none cursor-pointer"
+                >
+                  <option value="IST">India Standard Time (IST) - GMT+5:30</option>
+                  <option value="GMT">Greenwich Mean Time (GMT) - GMT+0:00</option>
+                  <option value="EST">Eastern Standard Time (EST) - GMT-5:00</option>
+                  <option value="PST">Pacific Standard Time (PST) - GMT-8:00</option>
+                </select>
+              </div>
+
+              {/* Dark Mode Toggle */}
+              <div className="space-y-2 pt-2">
+                <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider block">Visual Comfort Mode</span>
+                <button
+                  onClick={() => setIsDarkMode(!isDarkMode)}
+                  className={`w-full flex items-center justify-between px-4 py-3 rounded border transition-all ${
+                    isDarkMode ? 'bg-slate-900 border-slate-800 text-white' : 'bg-slate-50 border-slate-200 text-slate-700'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    {isDarkMode ? <Moon size={18} className="text-orange-400" /> : <Sun size={18} className="text-orange-500" />}
+                    <div className="text-left">
+                      <p className="text-xs font-bold uppercase tracking-tight">Dark Terminal Mode</p>
+                      <p className="text-[10px] text-slate-400 font-medium">Reduce eye strain for late-night analytics.</p>
+                    </div>
+                  </div>
+                  <div className={`w-10 h-5 rounded-full relative transition-colors ${isDarkMode ? 'bg-orange-500' : 'bg-slate-300'}`}>
+                    <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${isDarkMode ? 'left-6' : 'left-1'}`} />
+                  </div>
                 </button>
               </div>
             </div>

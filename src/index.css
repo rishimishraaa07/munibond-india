@@ -6,6 +6,73 @@
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 }
 
+/* Dark Mode Global Styles */
+html.dark body {
+  background-color: #020617;
+  color: #f1f5f9;
+}
+
+/* Global Accent Theme Support */
+:root {
+  --primary-accent: #f97316; /* Default Orange */
+}
+
+html[data-accent="blue"] {
+  --primary-accent: #2563eb;
+}
+
+html[data-accent="classic"] {
+  --primary-accent: #475569;
+}
+
+.text-orange-500, .text-orange-600 {
+  color: var(--primary-accent) !important;
+}
+
+.bg-orange-500, .bg-orange-600 {
+  background-color: var(--primary-accent) !important;
+}
+
+.border-orange-500 {
+  border-color: var(--primary-accent) !important;
+}
+
+.ring-orange-500 {
+  --tw-ring-color: var(--primary-accent) !important;
+}
+
+/* Global Density Support */
+html[data-density="compact"] main {
+  padding: 1rem !important;
+}
+
+html[data-density="compact"] .space-y-6 > * + * {
+  margin-top: 0.75rem !important;
+}
+
+html[data-density="compact"] .p-4, 
+html[data-density="compact"] .md:p-6 {
+  padding: 0.75rem !important;
+}
+
+html.dark .bg-white {
+  background-color: #0f172a;
+}
+
+html.dark .bg-slate-50 {
+  background-color: #1e293b;
+}
+
+html.dark .text-slate-800,
+html.dark .text-slate-700 {
+  color: #f1f5f9;
+}
+
+html.dark .border-slate-100,
+html.dark .border-slate-200 {
+  border-color: #334155;
+}
+
 /* Custom CSS Helpers */
 @keyframes ticker-scroll {
   0% {

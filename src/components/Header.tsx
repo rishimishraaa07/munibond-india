@@ -6,6 +6,7 @@
 import React, { useState } from 'react';
 import { Search, Bell, AlertTriangle, ChevronDown, KeyRound, LogOut, LogIn, ExternalLink } from 'lucide-react';
 import { UserProfile, Bond } from '../types';
+import { translations, Language } from '../translations';
 
 interface HeaderProps {
   onOpenAuth: () => void;
@@ -14,12 +15,31 @@ interface HeaderProps {
   bonds: Bond[];
   onSelectBond: (bond: Bond) => void;
   activeTab: string;
+  language: Language;
 }
 
-export default function Header({ onOpenAuth, user, onLogout, bonds, onSelectBond, activeTab }: HeaderProps) {
+export default function Header({ onOpenAuth, user, onLogout, bonds, onSelectBond, activeTab, language }: HeaderProps) {
+  const t = translations[language];
   const [searchQuery, setSearchQuery] = useState('');
   const [showResults, setShowResults] = useState(false);
   const [showUserDropdown, setShowUserDropdown] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [notifications, setNotifications] = useState([
+    { id: '1', title: 'Market Alert', message: 'BMC Bond Series 780-AM28 yield shifted by +0.15%', time: '2m ago', type: 'warning', read: false },
+    { id: '2', title: 'System Security', message: 'New administrative terminal login detected from IN-MUM-01', time: '15m ago', type: 'info', read: false },
+    { id: '3', title: 'Watchlist Update', message: 'Indore Municipal Green Bonds oversubscribed by 2.4x', time: '1h ago', type: 'success', read: true }
+  ]);
+
+  const unreadCount = notifications.filter(n => !n.read).length;
+
+  const markAllAsRead = () => {
+    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+  };
+
+  const clearNotifications = () => {
+    setNotifications([]);
+    setShowNotifications(false);
+  };
 
   // Filter bonds for autocomplete search
   const filteredSearchBonds = searchQuery.trim() === ''
@@ -59,7 +79,7 @@ export default function Header({ onOpenAuth, user, onLogout, bonds, onSelectBond
         <div className="relative">
           <input
             type="text"
-            placeholder="Search Corporation or ISIN..."
+            placeholder={t.search_placeholder}
             value={searchQuery}
             onChange={(e) => {
               setSearchQuery(e.target.value);
@@ -113,10 +133,68 @@ export default function Header({ onOpenAuth, user, onLogout, bonds, onSelectBond
         </div>
 
         {/* Info alerts bell */}
-        <button className="p-1.5 text-slate-500 hover:bg-slate-50 rounded-full transition-colors relative cursor-pointer">
-          <Bell size={16} />
-          <span className="absolute top-1 right-1 w-1.5 h-1.5 bg-orange-500 rounded-full"></span>
-        </button>
+        <div className="relative">
+          <button
+            onClick={() => {
+              setShowNotifications(!showNotifications);
+              setShowUserDropdown(false);
+            }}
+            className="p-1.5 text-slate-500 hover:bg-slate-50 rounded-full transition-colors relative cursor-pointer"
+          >
+            <Bell size={16} />
+            {unreadCount > 0 && (
+              <span className="absolute top-1 right-1 w-1.5 h-1.5 bg-orange-500 rounded-full"></span>
+            )}
+          </button>
+
+          {showNotifications && (
+            <div className="absolute right-0 top-11 bg-white border border-slate-100 rounded-lg shadow-2xl z-50 w-80 text-xs overflow-hidden flex flex-col">
+              <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                <span className="font-bold text-slate-800 uppercase tracking-widest text-[10px]">Notifications</span>
+                <div className="flex gap-3">
+                  <button onClick={markAllAsRead} className="text-[10px] text-orange-600 font-bold hover:underline">Read All</button>
+                  <button onClick={clearNotifications} className="text-[10px] text-slate-400 font-bold hover:text-slate-600">Clear</button>
+                </div>
+              </div>
+              
+              <div className="max-h-96 overflow-y-auto divide-y divide-slate-50">
+                {notifications.length === 0 ? (
+                  <div className="p-10 text-center text-slate-400 italic">
+                    No active system alerts.
+                  </div>
+                ) : (
+                  notifications.map(note => (
+                    <div key={note.id} className={`p-4 hover:bg-slate-50 transition-colors relative ${!note.read ? 'bg-orange-50/20' : ''}`}>
+                      {!note.read && (
+                        <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-orange-500"></div>
+                      )}
+                      <div className="flex items-start gap-3">
+                        <div className={`mt-0.5 w-2 h-2 rounded-full shrink-0 ${
+                          note.type === 'warning' ? 'bg-amber-500' :
+                          note.type === 'success' ? 'bg-emerald-500' : 'bg-blue-500'
+                        }`}></div>
+                        <div className="min-w-0">
+                          <p className="font-bold text-slate-800 flex items-center justify-between">
+                            {note.title}
+                            <span className="font-mono text-[9px] text-slate-400">{note.time}</span>
+                          </p>
+                          <p className="text-slate-500 leading-normal mt-0.5">{note.message}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+              
+              <div className="p-2.5 bg-slate-50 border-t border-slate-100 text-center">
+                <button className="text-[10px] font-bold text-slate-400 hover:text-slate-600 flex items-center justify-center gap-1 mx-auto">
+                  VIEW AUDIT LOGS
+                  <ExternalLink size={10} />
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
 
         {/* User context action dropdown */}
         <div className="relative">

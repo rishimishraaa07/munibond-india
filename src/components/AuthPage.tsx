@@ -166,8 +166,8 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
         <div className="hidden lg:flex flex-col justify-between p-12 bg-gradient-to-br from-slate-900 to-slate-950 border-r border-white/5">
           <div className="space-y-6">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-orange-500 rounded-xl flex items-center justify-center shadow-lg shadow-orange-500/20">
-                <span className="text-white font-black text-xl italic">M</span>
+              <div className="w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center shadow-lg shadow-orange-500/20">
+                <img src="/images/munibond.jpg" alt="MuniBond Logo" className="w-full h-full object-cover" />
               </div>
               <div className="flex flex-col">
                 <span className="text-white font-bold text-lg tracking-tight">MUNIBOND</span>
@@ -215,8 +215,8 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
         <div className="p-8 lg:p-12 flex flex-col justify-center">
           <div className="max-w-sm mx-auto w-full">
             <div className="lg:hidden flex items-center gap-3 mb-8">
-              <div className="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center">
-                <span className="text-white font-black text-sm italic">M</span>
+              <div className="w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center">
+                <img src="/images/munibond.jpg" alt="M" className="w-full h-full object-cover" />
               </div>
               <span className="text-white font-bold text-sm tracking-tight">MUNIBOND INDIA</span>
             </div>

@@ -37,7 +37,7 @@ export default function AdminConsole({ bonds, onAddBond, auditLogs }: AdminConso
 
   useEffect(() => {
     fetchSecurityData();
-    const interval = setInterval(fetchSecurityData, 10000); // Poll every 10s
+    const interval = setInterval(fetchSecurityData, 5000); // Poll every 5s
     return () => clearInterval(interval);
   }, []);
 

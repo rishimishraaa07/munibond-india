@@ -13,6 +13,7 @@ interface AuthModuleProps {
   onLogout: () => void;
   currentSessionId: string | null;
   onClose: () => void;
+  onUpdateUser: (updatedUser: UserProfile) => void;
 }
 
 export default function AuthModule({
@@ -20,7 +21,8 @@ export default function AuthModule({
   onLoginSuccess,
   onLogout,
   currentSessionId,
-  onClose
+  onClose,
+  onUpdateUser
 }: AuthModuleProps) {
   // Navigation states inside Security drawer: 
   // If not logged in, we have 'login' | 'register' | 'forgot' tabs.
@@ -73,8 +75,11 @@ export default function AuthModule({
   useEffect(() => {
     if (user) {
       loadSecurityState();
+      // Set up polling interval to keep security data fresh (Active monitoring)
+      const interval = setInterval(loadSecurityState, 5000);
+      return () => clearInterval(interval);
     }
-  }, [user, panelTab]);
+  }, [user]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -176,10 +181,30 @@ export default function AuthModule({
     }
   };
 
-  const toggleTwoFactor = () => {
-    // Client-side visual toggle to illustrate security
-    setSuccessMsg('2FA settings updated. Secret token refreshed.');
-    setTimeout(() => setSuccessMsg(''), 2000);
+  const toggleTwoFactor = async () => {
+    if (!user) return;
+    
+    setIsLoading(true);
+    try {
+      const res = await fetch('/api/auth/security/2fa', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ enabled: !user.isTwoFactorEnabled })
+      });
+      
+      if (res.ok) {
+        const data = await res.json();
+        onUpdateUser(data.user);
+        setSuccessMsg(user.isTwoFactorEnabled ? '2FA disabled successfully.' : '2FA activated. Scan your new secret key.');
+      } else {
+        setErrorMsg('Failed to update security policy.');
+      }
+    } catch (err) {
+      setErrorMsg('Network error updating security settings.');
+    } finally {
+      setIsLoading(false);
+      setTimeout(() => { setSuccessMsg(''); setErrorMsg(''); }, 3000);
+    }
   };
 
   // Filter audit logs based on search query, module, and state
@@ -205,7 +230,10 @@ export default function AuthModule({
           <div className="flex items-center gap-2">
             <ShieldCheck size={18} className="text-orange-500" />
             <div>
-              <h3 className="text-sm font-bold tracking-tight">Financial Terminal Gatekeeper</h3>
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-bold tracking-tight">Financial Terminal Gatekeeper</h3>
+                <span className="bg-emerald-500/20 text-emerald-400 text-[8px] px-1.5 py-0.2 rounded-full border border-emerald-500/30 font-black animate-pulse uppercase tracking-tighter">Live Monitor</span>
+              </div>
               <p className="text-[10px] font-mono text-slate-400">SESSION MANAGER & AUDIT TRAILS</p>
             </div>
           </div>
@@ -232,7 +260,7 @@ export default function AuthModule({
                   }`}
                 >
                   <KeyRound size={14} />
-                  2FA & Sign-in status
+                  Terminal Access Status
                 </button>
                 <button
                   onClick={() => setPanelTab('sessions')}
@@ -242,7 +270,10 @@ export default function AuthModule({
                 >
                   <Monitor size={14} />
                   Workspace Sessions
-                  <span className="ml-auto bg-slate-900/10 text-[9px] px-1 rounded-full">{activeSessions.length}</span>
+                  <div className="ml-auto flex items-center gap-1.5">
+                    <span className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span className="bg-slate-900/10 text-[9px] px-1 rounded-full">{activeSessions.length}</span>
+                  </div>
                 </button>
                 <button
                   onClick={() => setPanelTab('audit')}
@@ -252,6 +283,10 @@ export default function AuthModule({
                 >
                   <Globe size={14} />
                   Audit logs report
+                  <div className="ml-auto flex items-center gap-1.5">
+                    <span className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span className="bg-slate-900/10 text-[9px] px-1 rounded-full">{auditLogs.length}</span>
+                  </div>
                 </button>
               </div>
 
@@ -277,63 +312,40 @@ export default function AuthModule({
                 <div className="space-y-6">
                   <div>
                     <h4 className="text-sm font-bold text-slate-800">Terminal Gatekeeper Authentication</h4>
-                    <p className="text-xs text-slate-400 mt-1">Configure multi-factor policies and verify signature keys for safety audits.</p>
+                    <p className="text-xs text-slate-400 mt-1">Monitor recent terminal handshakes and verified access signatures.</p>
                   </div>
 
-                  {/* 2FA visual layout */}
-                  <div className="bg-slate-50 border border-slate-100 rounded-md p-4 flex items-start gap-4">
-                    <div className="bg-orange-50 p-2.5 rounded-full text-orange-500 mt-0.5 shrink-0">
-                      <Radio size={20} className="animate-pulse" />
+                  {/* Recent Logins replacement for 2FA */}
+                  <div className="bg-slate-50 border border-slate-100 rounded-md p-4 space-y-4">
+                    <div className="flex items-center gap-2 border-b border-slate-200 pb-3">
+                      <ShieldAlert size={16} className="text-orange-500" />
+                      <span className="text-[10px] font-mono font-bold text-slate-500 uppercase tracking-widest">Recent Administrative Handshakes</span>
                     </div>
-                    <div className="space-y-2 flex-1">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-xs font-bold text-slate-800">Two-Factor Authentication (TOTP)</p>
-                          <p className="text-[10px] text-slate-400">Pushes verification challenge upon logging into high-value trading bonds.</p>
-                        </div>
-                        <label className="relative inline-flex items-center cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={user.isTwoFactorEnabled}
-                            onChange={toggleTwoFactor}
-                            className="sr-only peer"
-                          />
-                          <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-350 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-orange-500"></div>
-                        </label>
-                      </div>
-
-                      {user.isTwoFactorEnabled && (
-                        <div className="bg-white border border-slate-100 rounded p-2.5 mt-2 flex items-center gap-3">
-                          <div className="border border-slate-200 p-1.5 bg-slate-50 rounded shrink-0">
-                            {/* QR CODE PLACEMENT SVG */}
-                            <svg className="w-16 h-16 text-slate-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <rect x="2" y="2" width="6" height="6" />
-                              <rect x="2" y="16" width="6" height="6" />
-                              <rect x="16" y="2" width="6" height="6" />
-                              <path d="M16 16h2v2h-2zm2 2h2v2h-2zm-2 2h2v-2h-2zm4-4h2v2h-2zm-2-2h2v2h-2zm2 4h-2v2h2zm-8-4h2v2h-2zm2 2h-2v2h2zm-2 2h2v-2h-2z" />
-                            </svg>
+                    
+                    <div className="space-y-2">
+                      {auditLogs.filter(l => l.action === 'USER_LOGIN').slice(0, 3).map(log => (
+                        <div key={log.id} className="flex items-center justify-between text-[11px] bg-white p-2 rounded border border-slate-100 shadow-sm">
+                          <div className="flex items-center gap-3">
+                            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
+                            <div>
+                              <p className="font-bold text-slate-700">Successful Signature Match</p>
+                              <p className="text-[9px] text-slate-400 font-mono">{log.ipAddress} • {log.userEmail}</p>
+                            </div>
                           </div>
-                          <div>
-                            <p className="text-[10px] text-slate-400">TOTP Authenticator Secret Key:</p>
-                            <span className="font-mono text-xs font-bold text-slate-700 uppercase select-all tracking-wider block bg-slate-100 px-2 py-0.5 rounded mt-1">
-                              {user.twoFactorSecret || 'MUNI7BOND8INDIA'}
-                            </span>
-                            <p className="text-[9px] text-slate-400 mt-2">Enter validation code <span className="font-mono font-bold text-slate-600">123456</span> or config secret key to bind successfully.</p>
-                          </div>
+                          <span className="font-mono text-[9px] text-slate-400">{new Date(log.timestamp).toLocaleString()}</span>
                         </div>
+                      ))}
+                      {auditLogs.filter(l => l.action === 'USER_LOGIN').length === 0 && (
+                        <p className="text-[10px] text-slate-400 italic text-center py-4">No recent handshake records detected.</p>
                       )}
                     </div>
                   </div>
 
                   {/* Certificate parameters block */}
-                  <div className="border border-slate-100 rounded-md p-4 space-y-3 divide-y divide-slate-50">
-                    <div className="flex items-center justify-between pb-2">
+                  <div className="border border-slate-100 rounded-md p-4 space-y-3">
+                    <div className="flex items-center justify-between">
                       <span className="text-xs font-semibold text-slate-700">Account Authorization Status</span>
                       <span className="text-[10px] font-mono font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded uppercase">Active Verified</span>
-                    </div>
-                    <div className="flex items-center justify-between pt-2">
-                      <span className="text-xs font-semibold text-slate-700">Database Ledger Roles</span>
-                      <span className="text-xs font-bold font-mono text-slate-600">{user.role.toUpperCase()}</span>
                     </div>
                   </div>
                 </div>

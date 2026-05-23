@@ -1,20 +1,45 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
-</div>
+# 🏛️ MuniBond India Intelligence Terminal
 
-# Run and deploy your AI Studio app
+India's premier real-time ledger for municipal bond tracking, revenue analytics, and fiscal transparency across state corporations. This high-integrity financial terminal provides municipal officers and analysts with critical market data and security monitoring tools.
 
-This contains everything you need to run your app locally.
+## 🚀 Key Features
 
-View your app in AI Studio: https://ai.studio/apps/df402b12-a7cf-4391-8661-17d4c983a2e7
+- **📊 Bond Market Screener**: Real-time tracking of municipal bonds across 18+ Indian states with CRISIL/ICRA ratings.
+- **🔐 Secure Access Terminal**: Advanced authentication gateway featuring Google Sign-In and dedicated administrative profiles.
+- **🛡️ Financial Gatekeeper**: Real-time monitoring of workspace sessions and detailed audit trails for every administrative action.
+- **🌍 Localization & UX**: Support for regional languages (Hindi, Marathi, Kannada) and high-density Bloomberg-style compact grids.
+- **🌓 Visual Comfort**: Integrated Dark Terminal Mode for high-contrast, late-night financial analysis.
 
-## Run Locally
+## 🛠️ Technical Stack
 
-**Prerequisites:**  Node.js
+- **Frontend**: React 18, TypeScript, Tailwind CSS, Framer Motion
+- **Backend**: Node.js, Express (Custom Vite Integration)
+- **Auth**: Firebase Google Authentication
+- **Icons**: Lucide React
 
+## 📥 Installation
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+1. **Clone the repository**
+2. **Install dependencies**:
+   ```bash
+   npm install
+   ```
+3. **Configure Environment**:
+   Create a `.env` file based on `.env.example` with your Firebase credentials.
+
+## 🚦 Getting Started
+
+Run the development terminal:
+```bash
+npm run dev
+```
+The terminal will be accessible at `http://localhost:3007` (or the next available port).
+
+## 👤 Authorized Access
+
+The primary administrative node is configured for:
+- **ID**: `rishikeshbrijjbhushanmishra@gmail.com`
+- **Signature**: `Rishi@050107`
+
+## 📄 License
+Apache-2.0

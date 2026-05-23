@@ -16,6 +16,7 @@ import {
   Briefcase
 } from 'lucide-react';
 import { UserProfile } from '../types';
+import { translations, Language } from '../translations';
 
 interface SidebarProps {
   activeTab: string;
@@ -24,6 +25,7 @@ interface SidebarProps {
   setCollapsed: (collapsed: boolean) => void;
   user: UserProfile | null;
   onOpenAuth: () => void;
+  language: Language;
 }
 
 export default function Sidebar({
@@ -32,18 +34,21 @@ export default function Sidebar({
   collapsed,
   setCollapsed,
   user,
-  onOpenAuth
+  onOpenAuth,
+  language
 }: SidebarProps) {
+  const t = translations[language];
+
   const menuItems = [
-    { id: 'tracker', label: 'Bond Screener', icon: TrendingUp },
-    { id: 'dashboard', label: 'Revenue Analytics', icon: Briefcase },
-    { id: 'locator', label: 'Corporation Map', icon: Map },
-    { id: 'settings', label: 'Settings', icon: Settings }
+    { id: 'tracker', label: t.bond_screener, icon: TrendingUp },
+    { id: 'dashboard', label: t.revenue_analytics, icon: Briefcase },
+    { id: 'locator', label: t.corporation_map, icon: Map },
+    { id: 'settings', label: t.settings, icon: Settings }
   ];
 
   // Admin access items
   const adminItems = [
-    { id: 'admin', label: 'Admin Console', icon: ShieldCheck }
+    { id: 'admin', label: t.admin_console, icon: ShieldCheck }
   ];
 
   return (
@@ -56,8 +61,8 @@ export default function Sidebar({
       <div className="h-16 flex items-center justify-between px-6 border-b border-slate-800 shrink-0">
         {!collapsed && (
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-orange-500 rounded flex items-center justify-center shrink-0">
-              <span className="text-white font-bold text-lg italic">M</span>
+            <div className="w-8 h-8 rounded overflow-hidden flex items-center justify-center shrink-0">
+              <img src="/images/munibond.jpg" alt="MuniBond Logo" className="w-full h-full object-cover" />
             </div>
             <div className="flex flex-col">
               <span className="text-white font-bold text-sm tracking-tight uppercase">MUNIBOND</span>
@@ -66,8 +71,8 @@ export default function Sidebar({
           </div>
         )}
         {collapsed && (
-          <div className="mx-auto select-none font-bold text-orange-500 h-8 w-8 rounded bg-slate-850 flex items-center justify-center border border-slate-800 text-sm">
-            M
+          <div className="mx-auto select-none font-bold text-orange-500 h-8 w-8 rounded overflow-hidden flex items-center justify-center border border-slate-800 text-sm">
+            <img src="/images/munibond.jpg" alt="M" className="w-full h-full object-cover" />
           </div>
         )}
         
@@ -166,7 +171,7 @@ export default function Sidebar({
               <div className="min-w-0 flex-1">
                 <p className="text-white text-xs font-semibold leading-tight truncate">{user.name}</p>
                 <span className="text-slate-500 text-[10px] block truncate capitalize">
-                  Senior Analyst
+                  {user.role}
                 </span>
               </div>
             )}
