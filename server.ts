@@ -19,8 +19,8 @@ app.use(express.json());
 const users: UserProfile[] = [
   {
     id: 'USR-ADMIN-001',
-    name: 'Rishikesh Brijbhushan Mishra',
-    email: 'rishikeshbrijjbhushanmishra@gmail.com',
+    name: 'System Administrator',
+    email: 'admin@munibond.in',
     role: 'admin',
     avatarUrl: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=80&h=80&fit=crop&crop=face',
     isTwoFactorEnabled: false,
@@ -220,7 +220,6 @@ app.post('/api/auth/login', (req: Request, res: Response) => {
   // Password verification
   const isCorrectPassword = 
     password === 'password' || 
-    password === 'Rishi@050107' || 
     (password && password.length >= 8); // Allow any strong-ish password for demo
 
   if (!isGoogleAuth && !isCorrectPassword) {

@@ -39,9 +39,7 @@ The terminal will be accessible at `http://localhost:3007` (or the next availabl
 
 ## 👤 Authorized Access
 
-The primary administrative node is configured for:
-- **ID**: `rishikeshbrijjbhushanmishra@gmail.com`
-- **Signature**: `Rishi@050107`
+Configure your own admin credentials in the server or use the offline/local registration feature to create an account.
 
 ## 🚀 Deployment Options
 
