@@ -124,7 +124,7 @@ export default function Header({ onOpenAuth, user, onLogout, bonds, onSelectBond
         )}
       </div>
 
-      {/* Right control utilities (Bell + Avatar Profile Menu) */}
+      {/* Right control utilities */}
       <div className="flex items-center gap-3">
         {/* Connection status bulb */}
         <div className="flex items-center gap-2 px-2 py-1 bg-green-50 text-green-700 border border-green-200 rounded text-[10px] font-bold">
@@ -135,10 +135,7 @@ export default function Header({ onOpenAuth, user, onLogout, bonds, onSelectBond
         {/* Info alerts bell */}
         <div className="relative">
           <button
-            onClick={() => {
-              setShowNotifications(!showNotifications);
-              setShowUserDropdown(false);
-            }}
+            onClick={() => setShowNotifications(!showNotifications)}
             className="p-1.5 text-slate-500 hover:bg-slate-50 rounded-full transition-colors relative cursor-pointer"
           >
             <Bell size={16} />
@@ -185,99 +182,6 @@ export default function Header({ onOpenAuth, user, onLogout, bonds, onSelectBond
                   ))
                 )}
               </div>
-              
-              <div className="p-2.5 bg-slate-50 border-t border-slate-100 text-center">
-                <button className="text-[10px] font-bold text-slate-400 hover:text-slate-600 flex items-center justify-center gap-1 mx-auto">
-                  VIEW AUDIT LOGS
-                  <ExternalLink size={10} />
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* User context action dropdown */}
-        <div className="relative">
-          <button
-            onClick={() => setShowUserDropdown(!showUserDropdown)}
-            className="flex items-center gap-2 hover:bg-slate-50 px-2.5 py-1.5 border border-slate-100 rounded text-xs transition-colors cursor-pointer text-slate-700 font-medium"
-          >
-            {user ? (
-              <>
-                {user.avatarUrl ? (
-                  <img
-                    src={user.avatarUrl}
-                    alt={user.name}
-                    referrerPolicy="no-referrer"
-                    className="h-6 w-6 rounded-full"
-                  />
-                ) : (
-                  <div className="h-6 w-6 rounded-full bg-orange-600 text-white font-bold flex items-center justify-center text-[10px] uppercase">
-                    {user.name.charAt(0)}
-                  </div>
-                )}
-                <span className="max-w-[100px] truncate">{user.name.split(' ')[0]}</span>
-                <ChevronDown size={12} className="text-slate-400 shrink-0" />
-              </>
-            ) : (
-              <span className="flex items-center gap-1.5 text-orange-600 font-semibold uppercase tracking-wider text-[10px]">
-                <LogIn size={13} />
-                Access Console
-              </span>
-            )}
-          </button>
-
-          {showUserDropdown && (
-            <div className="absolute right-0 top-11 bg-white border border-slate-100 rounded shadow-2xl z-50 p-2 w-48 text-xs divide-y divide-slate-100">
-              {user ? (
-                <>
-                  <div className="px-2.5 py-2">
-                    <p className="font-bold text-slate-800 truncate">{user.name}</p>
-                    <p className="text-[10px] font-mono text-slate-400 truncate tracking-wide mt-0.5">{user.email}</p>
-                  </div>
-                  <div className="py-1">
-                    <button
-                      onClick={() => {
-                        setShowUserDropdown(false);
-                        onOpenAuth();
-                      }}
-                      className="w-full text-left px-2.5 py-2 hover:bg-slate-50 rounded text-slate-600 flex items-center gap-2 cursor-pointer transition-colors"
-                    >
-                      <KeyRound size={13} className="text-slate-400" />
-                      Session & security
-                    </button>
-                    {user.role === 'admin' && (
-                      <div className="px-2.5 py-1 text-[9px] uppercase tracking-widest font-mono text-emerald-600 bg-emerald-50 rounded my-1 font-bold">
-                        ★ System Admin
-                      </div>
-                    )}
-                  </div>
-                  <div className="pt-1 select-none">
-                    <button
-                      onClick={() => {
-                        setShowUserDropdown(false);
-                        onLogout();
-                      }}
-                      className="w-full text-left px-2.5 py-2 hover:bg-rose-50 text-rose-600 rounded flex items-center gap-2 cursor-pointer transition-colors"
-                    >
-                      <LogOut size={13} />
-                      Revoke workspace
-                    </button>
-                  </div>
-                </>
-              ) : (
-                <div className="p-1">
-                  <button
-                    onClick={() => {
-                      setShowUserDropdown(false);
-                      onOpenAuth();
-                    }}
-                    className="w-full text-center py-2 bg-slate-900 text-white hover:bg-slate-900 rounded font-bold cursor-pointer transition-colors block text-[11px]"
-                  >
-                    Authenticate Session
-                  </button>
-                </div>
-              )}
             </div>
           )}
         </div>

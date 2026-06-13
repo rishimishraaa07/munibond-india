@@ -17,14 +17,24 @@ import AuthModule from './components/AuthModule';
 import AuthPage from './components/AuthPage';
 
 export default function App() {
-  // Authentication status with default administrator credentials initialized for instantaneous access
+  // Auto-login: No login page required
   const [user, setUser] = useState<UserProfile | null>(() => {
     // Attempt local restoring
     const saved = localStorage.getItem('mb_user');
     if (saved) {
       try { return JSON.parse(saved); } catch { return null; }
     }
-    return null;
+    // Auto-create a default user
+    return {
+      id: 'USR-DEFAULT-001',
+      name: 'Guest User',
+      email: 'guest@munibond.in',
+      role: 'viewer',
+      avatarUrl: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=80&h=80&fit=crop&crop=face',
+      isTwoFactorEnabled: false,
+      isLocked: false,
+      failedAttempts: 0
+    };
   });
 
   const [authToken, setAuthToken] = useState<string | null>(() => localStorage.getItem('mb_token'));
@@ -266,8 +276,9 @@ export default function App() {
     { id: 'NW-003', text: 'BMC matches AA+ rating scores based on property tax escrows audit.', severity: 'medium', time: '2h ago' }
   ];
 
+  // No login page - auto logged in
   if (!user) {
-    return <AuthPage onLoginSuccess={(u, t) => handleUserLogin(u, t)} />;
+    return null;
   }
 
   return (
@@ -369,22 +380,7 @@ export default function App() {
                   />
                 )}
 
-                {/* Authenticated Workspace Users Security Desk view */}
-                {activeTab === 'auth' && (
-                  <div className="max-w-3xl mx-auto py-4">
-                    <AuthModule
-                      user={user}
-                      onLoginSuccess={(u, t, s) => handleUserLogin(u, t)}
-                      onLogout={handleUserLogout}
-                      currentSessionId="SES-001"
-                      onClose={() => setActiveTab('tracker')}
-                      onUpdateUser={(updated) => {
-                        setUser(updated);
-                        localStorage.setItem('mb_user', JSON.stringify(updated));
-                      }}
-                    />
-                  </div>
-                )}
+
               </>
           </main>
 

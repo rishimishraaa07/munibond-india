@@ -149,44 +149,7 @@ export default function Sidebar({
         )}
       </nav>
 
-      {/* Footer Profile Status / Auth Entry */}
-      <div className="p-4 mt-auto border-t border-slate-800 bg-[#0b1120] shrink-0">
-        {user ? (
-          <div
-            onClick={onOpenAuth}
-            className="flex items-center gap-3 p-1 rounded transition-colors cursor-pointer text-left hover:bg-slate-800/20"
-          >
-            {user.avatarUrl ? (
-              <img
-                src={user.avatarUrl}
-                alt={user.name}
-                referrerPolicy="no-referrer"
-                className="h-8 w-8 rounded-full shrink-0 object-cover bg-slate-700"
-              />
-            ) : (
-              <div className="h-8 w-8 rounded-full bg-slate-700 flex items-center justify-center text-xs text-white shrink-0 uppercase font-bold font-mono">
-                {user.name.split(' ').map(n=>n[0]).join('')}
-              </div>
-            )}
-            {!collapsed && (
-              <div className="min-w-0 flex-1">
-                <p className="text-white text-xs font-semibold leading-tight truncate">{user.name}</p>
-                <span className="text-slate-500 text-[10px] block truncate capitalize">
-                  {user.role}
-                </span>
-              </div>
-            )}
-          </div>
-        ) : (
-          <button
-            onClick={onOpenAuth}
-            className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-500 hover:to-orange-400 font-semibold text-xs rounded text-white shadow shadow-orange-600/20 cursor-pointer text-center"
-          >
-            <Database size={14} />
-            {!collapsed && <span>Handshake Terminal</span>}
-          </button>
-        )}
-      </div>
+
     </aside>
   );
 }
