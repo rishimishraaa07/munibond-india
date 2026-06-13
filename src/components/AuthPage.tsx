@@ -56,6 +56,24 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
         })
       });
 
+      if (!res.ok) {
+        // Fallback for Vercel/Static deployments where the backend is not running
+        const localUsers = JSON.parse(localStorage.getItem('mb_mock_users') || '[]');
+        const user = localUsers.find((u: any) => u.email.toLowerCase() === email.trim().toLowerCase() && u.password === password);
+        
+        if (user) {
+          setIsLoading(false);
+          setSuccess('Access Granted (Offline Mode). Redirecting...');
+          setTimeout(() => onLoginSuccess(user, 'offline-token'), 1000);
+          return;
+        }
+
+        const data = await res.json().catch(() => ({ error: 'Authentication failed' }));
+        setIsLoading(false);
+        setError(data.error || 'Authentication failed');
+        return;
+      }
+
       const data = await res.json();
       setIsLoading(false);
 
@@ -93,13 +111,38 @@ export default function AuthPage({ onLoginSuccess }: AuthPageProps) {
         body: JSON.stringify({ name, email, password, role })
       });
 
-      const data = await res.json();
-      setIsLoading(false);
-
       if (!res.ok) {
-        setError(data.error || 'Registration failed');
+        // Fallback for registration when backend is unavailable
+        const localUsers = JSON.parse(localStorage.getItem('mb_mock_users') || '[]');
+        if (localUsers.some((u: any) => u.email.toLowerCase() === email.toLowerCase())) {
+          setError('Email already provisioned in local ledger.');
+          setIsLoading(false);
+          return;
+        }
+
+        const newUser = {
+          id: `USR-L-${Math.floor(Math.random() * 1000)}`,
+          name,
+          email: email.toLowerCase(),
+          role,
+          password, // Storing for local mock only
+          avatarUrl: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=80&h=80&fit=crop&crop=face'
+        };
+
+        localUsers.push(newUser);
+        localStorage.setItem('mb_mock_users', JSON.stringify(localUsers));
+        
+        setIsLoading(false);
+        setSuccess('Account provisioned (Local). Please sign in.');
+        setTimeout(() => {
+          setIsLogin(true);
+          setSuccess('');
+        }, 1500);
         return;
       }
+
+      const data = await res.json();
+      setIsLoading(false);
 
       setSuccess('Account provisioned. Please sign in.');
       setTimeout(() => {

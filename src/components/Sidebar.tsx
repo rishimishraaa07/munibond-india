@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { UserProfile } from '../types';
 import { translations, Language } from '../translations';
+import logo from '../../images/munibond.jpg';
 
 interface SidebarProps {
   activeTab: string;
